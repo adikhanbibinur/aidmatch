@@ -4,12 +4,24 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    const { item, quantity, location } = body;
+    const {
+      organisation,
+      item,
+      quantity,
+      urgency,
+      location,
+    } = body;
 
-    if (!item || !quantity || !location) {
+    if (
+      !organisation ||
+      !item ||
+      !quantity ||
+      !urgency ||
+      !location
+    ) {
       return Response.json(
         {
-          error: "Item, quantity and location are required",
+          error: "All fields are required",
         },
         {
           status: 400,
@@ -18,10 +30,12 @@ export async function POST(request: Request) {
     }
 
     const { data, error } = await supabase
-      .from("donations")
+      .from("needs")
       .insert({
+        organisation,
         item,
         quantity,
+        urgency,
         location,
       })
       .select()
@@ -32,7 +46,7 @@ export async function POST(request: Request) {
 
       return Response.json(
         {
-          error: "Failed to save donation",
+          error: "Failed to save need",
         },
         {
           status: 500,
@@ -42,8 +56,8 @@ export async function POST(request: Request) {
 
     return Response.json(
       {
-        message: "Donation saved successfully",
-        donation: data,
+        message: "Need saved successfully",
+        need: data,
       },
       {
         status: 201,
@@ -65,7 +79,7 @@ export async function POST(request: Request) {
 
 export async function GET() {
   const { data, error } = await supabase
-    .from("donations")
+    .from("needs")
     .select("*")
     .order("created_at", {
       ascending: false,
@@ -74,7 +88,7 @@ export async function GET() {
   if (error) {
     return Response.json(
       {
-        error: "Failed to fetch donations",
+        error: "Failed to fetch needs",
       },
       {
         status: 500,
@@ -83,6 +97,6 @@ export async function GET() {
   }
 
   return Response.json({
-    donations: data,
+    needs: data,
   });
 }

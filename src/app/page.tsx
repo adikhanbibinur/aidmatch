@@ -1,14 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 
 export default function Home() {
   const [showForm, setShowForm] = useState(false);
-
+  const [donationCount, setDonationCount] = useState(0);
   const [item, setItem] = useState("");
   const [quantity, setQuantity] = useState("");
   const [location, setLocation] = useState("");
 
+  async function loadDonations() {
+    const response = await fetch("/api/donations");
+
+    const data = await response.json();
+
+    if (data.donations) {
+      setDonationCount(data.donations.length);
+    }
+  }
+  useEffect(() => {
+  loadDonations();
+}, []);
   async function handleSaveDonation() {
     const response = await fetch("/api/donations", {
       method: "POST",
@@ -25,6 +38,14 @@ export default function Home() {
     });
 
     const data = await response.json();
+    if (response.ok) {
+      setItem("");
+      setQuantity("");
+      setLocation("");
+      setShowForm(false);
+
+      await loadDonations();
+    }
 
     console.log("Response from backend:", data);
   }
@@ -48,7 +69,7 @@ export default function Home() {
         <div className="grid gap-6 md:grid-cols-3">
           <div className="rounded-2xl bg-white p-6 shadow-sm">
             <p className="text-sm text-slate-500">Available Donations</p>
-            <p className="mt-2 text-4xl font-bold">12</p>
+            <p className="mt-2 text-4xl font-bold">{donationCount}</p>
           </div>
 
           <div className="rounded-2xl bg-white p-6 shadow-sm">
@@ -70,9 +91,18 @@ export default function Home() {
             Add Donation
           </button>
 
-          <button className="rounded-xl border border-slate-300 bg-white px-6 py-3 font-medium">
+          <Link
+            href="/needs"
+            className="rounded-xl border border-slate-300 bg-white px-6 py-3 font-medium"
+          >
             View Needs
-          </button>
+          </Link>
+          <Link
+            href="/match"
+            className="rounded-xl bg-emerald-600 px-6 py-3 font-medium text-white"
+          >
+            Find AI Match
+          </Link>
         </div>
 
         {showForm && (
